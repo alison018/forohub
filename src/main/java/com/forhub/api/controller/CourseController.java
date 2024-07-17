@@ -2,6 +2,7 @@ package com.forhub.api.controller;
 
 import com.forhub.api.dto.course.CourseDTO;
 import com.forhub.api.dto.course.CreateCourseDTO;
+import com.forhub.api.dto.course.CreateCourseListDTO;
 import com.forhub.api.dto.course.SearchRequest;
 import com.forhub.api.dto.course.UpdateCourseDTO;
 import com.forhub.api.service.CourseService;
@@ -9,11 +10,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
+@Controller
 @RestController
 @RequestMapping("/courses")
 @RequiredArgsConstructor
@@ -22,12 +26,23 @@ public class CourseController {
     private final CourseService courseService;
 
     @PostMapping
+    @ResponseBody
     public ResponseEntity<CourseDTO> createCourse(@Valid @RequestBody CreateCourseDTO createCourseDTO) {
         CourseDTO newCourse = courseService.createCourse(createCourseDTO);
         return new ResponseEntity<>(newCourse, HttpStatus.CREATED);
     }
 
+    @PostMapping("/bulk")
+    @ResponseBody
+    public ResponseEntity<List<CourseDTO>> createCourses(@Valid @RequestBody CreateCourseListDTO createCourseListDTO) {
+        List<CourseDTO> newCourses = createCourseListDTO.courses().stream()
+                .map(courseService::createCourse)
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(newCourses, HttpStatus.CREATED);
+    }
+
     @GetMapping
+    @ResponseBody
     public ResponseEntity<List<CourseDTO>> getAllCourses() {
         List<CourseDTO> courses = courseService.getAllCourses();
         return new ResponseEntity<>(courses, HttpStatus.OK);
